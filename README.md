@@ -57,34 +57,7 @@ Untuk menjalankan menempel di terminal:
 tps-public start --public --foreground
 ```
 
-## Menjalankan tools admin
-
-Jalankan tools admin dari Termux:
-
-```bash
-tps-admin start
-```
-
-Setelah muncul pesan bahwa admin berjalan, buka browser pada perangkat yang sama dan akses:
-
-```text
-http://127.0.0.1:8090
-```
-
-Dari halaman tersebut, admin dapat melihat access key, membuat key baru, dan mengatur masa aktif key. Halaman ini hanya tersedia secara lokal dan tidak dibuka melalui URL publik.
-
-Perintah admin melalui terminal:
-
-```bash
-tps-admin status
-tps-admin key show
-tps-admin key info
-tps-admin key generate 24h
-tps-admin key set-expiry 7d
-tps-admin stop
-```
-
-Gunakan `tps-admin stop` untuk menutup tools admin tanpa menghentikan server publik.
+Dokumentasi tools admin dipindahkan ke repository terpisah: https://github.com/husein2014-well/termux-public-server-admin
 
 ## Perintah lengkap
 
