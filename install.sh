@@ -21,6 +21,9 @@ else
 fi
 
 mkdir -p "$INSTALL_DIR/www" "$INSTALL_DIR/logs" "$INSTALL_DIR/run"
+if [[ ! -f "$INSTALL_DIR/www/index.html" && -f "$INSTALL_DIR/server/www/index.html" ]]; then
+  cp "$INSTALL_DIR/server/www/index.html" "$INSTALL_DIR/www/index.html"
+fi
 cp "$INSTALL_DIR/bin/tps" "$BIN_DIR/tps"
 chmod 755 "$BIN_DIR/tps"
 printf 'export TPS_HOME=%q\n' "$INSTALL_DIR" > "$INSTALL_DIR/env"

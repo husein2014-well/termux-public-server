@@ -10,6 +10,30 @@ tps status
 tps logs
 ```
 
+## Access key dari website admin
+
+Website publik selalu meminta access key. Untuk melihat key aktif dari terminal:
+
+```bash
+tps key show
+```
+
+Untuk membuat key dari website:
+
+```bash
+tps admin
+```
+
+Buka `http://127.0.0.1:8090` pada browser Android. Klik **Buat key baru**, lalu gunakan key yang ditampilkan pada halaman login website publik. Admin hanya listen di localhost dan tidak diteruskan oleh Cloudflare Tunnel.
+
+Alternatif rotasi dari terminal:
+
+```bash
+tps key generate
+```
+
+Rotasi key akan membatalkan key lama dan sesi login lama.
+
 Untuk menghentikan server dan tunnel:
 
 ```bash

@@ -10,6 +10,8 @@ Jalankan server HTTP dari perangkat Android melalui Termux dan bagikan ke intern
 - Server HTTP contoh berbasis Python.
 - Akses publik melalui Cloudflare Quick Tunnel tanpa port-forwarding.
 - Mode LAN untuk akses perangkat dalam Wi-Fi yang sama.
+- Proteksi access key sebelum pengunjung melihat website.
+- Halaman admin lokal untuk membuat/merotasi key tanpa mengeksposnya ke internet.
 - Perintah `start`, `stop`, `status`, `logs`, `update`, dan `uninstall`.
 - Tidak membuka SSH, tidak memasang akses root, dan tidak menyimpan kredensial.
 
@@ -37,6 +39,20 @@ Server sekarang berjalan di **background dalam tmux**, sehingga jendela/aplikasi
 tps status
 tps logs
 ```
+
+Server akan meminta **access key** sebelum menampilkan halaman. Lihat key aktif dengan:
+
+```bash
+tps key show
+```
+
+Atau buka halaman pembuat key di perangkat yang menjalankan Termux:
+
+```bash
+tps admin
+```
+
+Lalu buka `http://127.0.0.1:8090` pada browser Android. Tekan **Buat key baru** untuk merotasi key. Halaman admin hanya listen di `127.0.0.1`, sehingga tidak ikut terbuka lewat URL publik.
 
 Bagikan URL `https://....trycloudflare.com` kepada orang lain. Hentikan dengan:
 
@@ -66,6 +82,9 @@ Buka alamat LAN yang ditampilkan, misalnya `http://192.168.1.20:8080`.
  tps start --public   Jalankan server + tunnel di background
  tps start --lan      Jalankan server LAN di background
  tps start --public --foreground  Jalankan menempel di terminal
+ tps admin            Buka halaman admin key lokal di port 8090
+ tps key show         Tampilkan key aktif di terminal
+ tps key generate     Buat key baru dan batalkan key lama
 tps stop             Hentikan server dan tunnel
 tps status           Tampilkan status proses dan alamat terakhir
 tps logs             Tampilkan log terakhir
@@ -99,6 +118,8 @@ Perintah aplikasi harus dipercaya dan dipahami pengguna. Jangan mengekspos panel
 
 - Quick Tunnel cocok untuk demo, webhook pengembangan, dan berbagi sementara; bukan SLA produksi.
 - URL publik berarti siapa pun yang memiliki URL dapat mengakses layanan. Tambahkan autentikasi di aplikasi bila data sensitif.
+- Access key disimpan lokal pada `~/.termux-public-server/run/access.key` dengan permission terbatas. Jangan kirim key ke orang yang tidak dipercaya.
+- Cookie login berlaku sekitar 24 jam. Setelah merotasi key, sesi lama tidak berlaku lagi.
 - Jangan menjalankan perintah dari pengunjung dan jangan membagikan token, cookie, file pribadi, atau direktori home.
 - Android dapat menghentikan proses di latar belakang. Jalankan `termux-wake-lock` bila perlu dan matikan optimasi baterai untuk Termux.
 - Setelah instalasi, buka **Settings Android → Apps → Termux → Battery → Unrestricted** (nama menu dapat berbeda menurut merek ponsel). Jangan force-stop Termux; gunakan `tps stop` agar proses ditutup dengan benar.
