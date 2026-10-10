@@ -9,7 +9,9 @@ Tps Admin - halaman admin lokal dan access key
   tps-admin stop          Hentikan halaman admin
   tps-admin status        Lihat status halaman admin
   tps-admin key show      Tampilkan access key aktif
+  tps-admin key info      Tampilkan key dan masa aktif
   tps-admin key generate  Buat key baru dan batalkan key lama
+  tps-admin key set-expiry 24h  Atur masa aktif key saat ini
 EOF
 }
 
@@ -17,6 +19,6 @@ case "${1:-help}" in
   start) exec "${PREFIX:-}/bin/tps" admin;;
   stop) exec "${PREFIX:-}/bin/tps" admin-stop;;
   status) exec "${PREFIX:-}/bin/tps" admin-status;;
-  key) exec "${PREFIX:-}/bin/tps" key "${2:-show}";;
+  key) shift; exec "${PREFIX:-}/bin/tps" key "${1:-show}" "${2:-}";;
   help|*) usage;;
 esac

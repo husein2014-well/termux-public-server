@@ -128,9 +128,11 @@ case "${1:-help}" in
   admin) cmd_admin "${2:-}";;
   key)
     case "${2:-show}" in
-      generate) python "$TPS_HOME/app.py" --generate-key; echo "Key baru dibuat dan key lama tidak berlaku.";;
-      show) [[ -f "$TPS_HOME/run/access.key" ]] || python "$TPS_HOME/app.py" --generate-key >/dev/null; cat "$TPS_HOME/run/access.key";;
-      *) echo "Gunakan: tps key show|generate" >&2; exit 2;;
+      generate) python "$TPS_HOME/app.py" --generate-key "${3:-never}";;
+      show) python "$TPS_HOME/app.py" --show-key;;
+      info) python "$TPS_HOME/app.py" --show-info;;
+      set-expiry) python "$TPS_HOME/app.py" --set-expiry "${3:-never}";;
+      *) echo "Gunakan: tps key show|info|generate [durasi]|set-expiry [durasi]" >&2; exit 2;;
     esac;;
   public-stop) stop_public;;
   admin-stop) stop_admin;;

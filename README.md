@@ -71,18 +71,22 @@ Buka alamat ini pada browser Android:
 http://127.0.0.1:8090
 ```
 
-Halaman admin hanya listen di localhost dan tidak diteruskan ke tunnel publik. Gunakan halaman tersebut untuk membuat/merotasi access key.
+Halaman admin hanya listen di localhost dan tidak diteruskan ke tunnel publik. Gunakan halaman tersebut untuk membuat/merotasi access key dan memilih masa aktif **1 jam, 24 jam, 7 hari, 30 hari, atau tanpa kedaluwarsa**.
 
 Perintah admin lainnya:
 
 ```bash
 tps-admin status
 tps-admin key show
+tps-admin key info
 tps-admin key generate
+tps-admin key generate 24h
+tps-admin key set-expiry 7d
+tps-admin key set-expiry never
 tps-admin stop
 ```
 
-Setiap kali key dirotasi, key lama dan sesi login lama tidak berlaku lagi.
+Setiap kali key dirotasi, key lama dan sesi login lama tidak berlaku lagi. `set-expiry` mengubah masa aktif key saat ini tanpa mengganti key.
 
 ## Perintah lengkap
 
@@ -98,7 +102,9 @@ tps-admin start                 Jalankan admin lokal
 tps-admin stop                  Hentikan hanya admin
 tps-admin status                Status admin
 tps-admin key show              Tampilkan key aktif
-tps-admin key generate          Buat key baru
+tps-admin key info              Tampilkan masa aktif key
+tps-admin key generate 24h      Buat key aktif 24 jam
+tps-admin key set-expiry 7d     Atur key saat ini aktif 7 hari
 ```
 
 Perintah `tps` lama tetap tersedia sebagai kompatibilitas, tetapi penggunaan yang disarankan adalah `tps-public` dan `tps-admin`.
@@ -118,6 +124,7 @@ Pengunjung tetap harus memasukkan access key sebelum melihat website.
 
 - URL publik dapat diakses siapa pun yang memilikinya; access key melindungi isi website, bukan menyembunyikan URL.
 - Access key disimpan lokal di `~/.termux-public-server/run/access.key` dengan permission terbatas.
+- Metadata masa aktif disimpan di `~/.termux-public-server/run/access.json`.
 - Jangan membagikan key kepada orang yang tidak dipercaya.
 - Cookie login berlaku sekitar 24 jam.
 - Jangan mengekspos panel admin, database, SSH, file pribadi, token, atau cookie.
