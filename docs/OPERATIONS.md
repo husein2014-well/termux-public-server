@@ -1,8 +1,30 @@
 # Operasi
 
-## Menjaga proses tetap hidup
+## Menjaga proses tetap hidup setelah Termux ditutup
 
-Di Termux, jalankan `termux-wake-lock` (paket `termux-api` opsional) dan nonaktifkan battery optimization untuk Termux di pengaturan Android. Jangan menghapus notifikasi Termux bila Android masih menghentikan proses.
+`tps start --public` dan `tps start --lan` otomatis membuat sesi **tmux** bernama `tps-server`, jadi terminal dapat ditutup tanpa menghentikan server.
+
+```bash
+tps start --public
+tps status
+tps logs
+```
+
+Untuk menghentikan server dan tunnel:
+
+```bash
+tps stop
+```
+
+Agar Android tidak membunuh proses:
+
+1. Buka pengaturan aplikasi **Termux**.
+2. Pilih **Battery/Baterai**.
+3. Pilih **Unrestricted/Tidak dibatasi** atau matikan optimasi baterai.
+4. Jangan gunakan **Force stop**. Gunakan `tps stop`.
+5. Jika tersedia, jalankan `termux-wake-lock` ketika membutuhkan server aktif lama.
+
+Catatan: Android tetap dapat menghentikan proses karena mode hemat daya, RAM penuh, reboot, atau force-stop. Untuk otomatis hidup setelah reboot, gunakan aplikasi **Termux:Boot** dan buat skrip startup terpisah; fitur itu tidak dipasang otomatis oleh kit ini.
 
 ## Jika URL tidak muncul
 

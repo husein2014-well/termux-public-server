@@ -8,14 +8,17 @@ TUNNEL_PID_FILE="$TPS_HOME/run/tunnel.pid"
 LOG_FILE="$TPS_HOME/logs/tps.log"
 URL_FILE="$TPS_HOME/run/public-url"
 WWW_DIR="$TPS_HOME/www"
+SESSION="tps-server"
+SELF="${TPS_SELF:-${PREFIX:-}/bin/tps}"
 mkdir -p "$TPS_HOME/run" "$TPS_HOME/logs" "$WWW_DIR"
 
 log(){ printf '[%s] %s\n' "$(date '+%F %T')" "$*" | tee -a "$LOG_FILE"; }
 running(){ [[ -f "$1" ]] && kill -0 "$(cat "$1")" 2>/dev/null; }
 stop_pid(){ local f="$1"; if running "$f"; then kill "$(cat "$f")" 2>/dev/null || true; fi; rm -f "$f"; }
+tmux_running(){ command -v tmux >/dev/null 2>&1 && tmux has-session -t "$SESSION" 2>/dev/null; }
 
 install_cloudflared(){
-  if command -v cloudflared >/dev/null 2>&1; then return; fi
+  if command -v cloudflared >/dev/null 2>&1; then CLOUDFLARED="$(command -v cloudflared)"; return; fi
   local arch url tmp
   arch="$(uname -m)"
   case "$arch" in
@@ -46,8 +49,8 @@ start_server(){
   log "Server berjalan pada port $PORT (PID $(cat "$PID_FILE"))"
 }
 
-cmd_start(){
-  local mode="${1:---public}"
+start_foreground(){
+  local mode="$1"
   case "$mode" in
     --public)
       PORT="${TPS_PORT:-8080}"
@@ -62,7 +65,7 @@ cmd_start(){
         fi
       done &
       echo $! > "$TUNNEL_PID_FILE"
-      log "Quick Tunnel dimulai. Tunggu URL trycloudflare.com muncul."
+      log "Quick Tunnel dimulai. URL publik akan disimpan di $URL_FILE."
       ;;
     --lan)
       PORT="${TPS_PORT:-8080}"
@@ -71,20 +74,49 @@ cmd_start(){
       ip="$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src"){print $(i+1); exit}}')"
       log "Akses LAN: http://${ip:-IP-TERMUX}:$PORT"
       ;;
-    *) echo "Gunakan: tps start --public|--lan" >&2; exit 2;;
+    *) echo "Gunakan: tps start --public|--lan [--foreground]" >&2; exit 2;;
   esac
 }
 
+cmd_start(){
+  local mode="${1:---public}" foreground="${2:-}"
+  if [[ "$foreground" != "--foreground" ]]; then
+    if ! command -v tmux >/dev/null 2>&1; then
+      echo "tmux belum terpasang. Jalankan: pkg install -y tmux" >&2
+      exit 1
+    fi
+    if tmux_running; then
+      echo "Server sudah berjalan di background (tmux: $SESSION). Gunakan 'tps status' atau 'tps stop'."
+      return
+    fi
+    if command -v termux-wake-lock >/dev/null 2>&1; then termux-wake-lock || true; fi
+    tmux new-session -d -s "$SESSION" "$SELF start $mode --foreground"
+    echo "Server berjalan di background (tmux: $SESSION)."
+    echo "Gunakan 'tps status' untuk URL dan 'tps logs' untuk log."
+    return
+  fi
+  start_foreground "$mode"
+}
+
 case "${1:-help}" in
-  start) cmd_start "${2:---public}";;
-  stop) stop_pid "$TUNNEL_PID_FILE"; stop_pid "$PID_FILE"; rm -f "$URL_FILE"; log "Server dihentikan.";;
+  start) cmd_start "${2:---public}" "${3:-}";;
+  stop)
+    if tmux_running; then tmux kill-session -t "$SESSION" 2>/dev/null || true; fi
+    stop_pid "$TUNNEL_PID_FILE"
+    stop_pid "$PID_FILE"
+    if command -v termux-wake-unlock >/dev/null 2>&1; then termux-wake-unlock || true; fi
+    rm -f "$URL_FILE"
+    log "Server dihentikan.";;
   status)
+    tmux_running && echo "daemon: aktif (tmux: $SESSION)" || echo "daemon: mati"
     running "$PID_FILE" && echo "server: aktif (PID $(cat "$PID_FILE"))" || echo "server: mati"
     running "$TUNNEL_PID_FILE" && echo "tunnel: aktif (PID $(cat "$TUNNEL_PID_FILE"))" || echo "tunnel: mati"
-    [[ -f "$URL_FILE" ]] && echo "url: $(cat "$URL_FILE")"
-    ;;
+    [[ -f "$URL_FILE" ]] && echo "url: $(cat "$URL_FILE")";;
   logs) tail -n 80 "$LOG_FILE" 2>/dev/null || echo "Belum ada log.";;
   update) git -C "$TPS_HOME" pull --ff-only && cp "$TPS_HOME/bin/tps" "$PREFIX/bin/tps" && chmod 755 "$PREFIX/bin/tps";;
-  uninstall) stop_pid "$TUNNEL_PID_FILE"; stop_pid "$PID_FILE"; rm -f "$PREFIX/bin/tps"; echo "CLI dihapus. Data tetap ada di $TPS_HOME.";;
-  help|*) echo "Penggunaan: tps start --public|--lan | stop | status | logs | update | uninstall";;
+  uninstall)
+    "$0" stop >/dev/null 2>&1 || true
+    rm -f "$PREFIX/bin/tps"
+    echo "CLI dihapus. Data tetap ada di $TPS_HOME.";;
+  help|*) echo "Penggunaan: tps start --public|--lan [--foreground] | stop | status | logs | update | uninstall";;
 esac

@@ -25,16 +25,29 @@ source "$HOME/.termux-public-server/env"
 
 Jika repository dipindahkan, ganti URL raw di atas sesuai pemilik/repository baru.
 
-## Mulai server publik
+## Mulai server publik di background
 
 ```bash
 tps start --public
 ```
 
-Terminal akan menampilkan URL `https://....trycloudflare.com`. Bagikan URL itu kepada orang lain. Hentikan dengan `Ctrl+C`, atau dari sesi lain:
+Server sekarang berjalan di **background dalam tmux**, sehingga jendela/aplikasi Termux dapat ditutup tanpa langsung menghentikan server. URL publik dapat dilihat dengan:
+
+```bash
+tps status
+tps logs
+```
+
+Bagikan URL `https://....trycloudflare.com` kepada orang lain. Hentikan dengan:
 
 ```bash
 tps stop
+```
+
+Jika ingin melihat proses secara langsung di terminal, gunakan:
+
+```bash
+tps start --public --foreground
 ```
 
 ## Mode LAN
@@ -50,8 +63,9 @@ Buka alamat LAN yang ditampilkan, misalnya `http://192.168.1.20:8080`.
 ## Perintah
 
 ```text
-tps start --public   Jalankan server + Cloudflare Quick Tunnel
-tps start --lan      Jalankan server hanya di jaringan lokal
+ tps start --public   Jalankan server + tunnel di background
+ tps start --lan      Jalankan server LAN di background
+ tps start --public --foreground  Jalankan menempel di terminal
 tps stop             Hentikan server dan tunnel
 tps status           Tampilkan status proses dan alamat terakhir
 tps logs             Tampilkan log terakhir
@@ -87,6 +101,8 @@ Perintah aplikasi harus dipercaya dan dipahami pengguna. Jangan mengekspos panel
 - URL publik berarti siapa pun yang memiliki URL dapat mengakses layanan. Tambahkan autentikasi di aplikasi bila data sensitif.
 - Jangan menjalankan perintah dari pengunjung dan jangan membagikan token, cookie, file pribadi, atau direktori home.
 - Android dapat menghentikan proses di latar belakang. Jalankan `termux-wake-lock` bila perlu dan matikan optimasi baterai untuk Termux.
+- Setelah instalasi, buka **Settings Android → Apps → Termux → Battery → Unrestricted** (nama menu dapat berbeda menurut merek ponsel). Jangan force-stop Termux; gunakan `tps stop` agar proses ditutup dengan benar.
+- Mode background memakai `tmux`, dan installer sudah memasang `tmux`. Menutup jendela Termux berbeda dengan menekan **Force stop** pada pengaturan Android.
 - Penggunaan data, panas, dan baterai menjadi tanggung jawab pengguna.
 - Cloudflare Quick Tunnel memakai layanan pihak ketiga; baca syarat layanan mereka sebelum penggunaan produksi.
 
