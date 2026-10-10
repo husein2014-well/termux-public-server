@@ -3,6 +3,8 @@ set -Eeuo pipefail
 
 usage(){
   cat <<'EOF'
+Jalankan halaman admin lokal di http://127.0.0.1:8090
+
   tps-admin start
   tps-admin stop
   tps-admin status
