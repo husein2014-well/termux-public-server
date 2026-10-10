@@ -1,0 +1,90 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -Eeuo pipefail
+
+TPS_HOME="${TPS_HOME:-$HOME/.termux-public-server}"
+PORT="${TPS_PORT:-8080}"
+PID_FILE="$TPS_HOME/run/server.pid"
+TUNNEL_PID_FILE="$TPS_HOME/run/tunnel.pid"
+LOG_FILE="$TPS_HOME/logs/tps.log"
+URL_FILE="$TPS_HOME/run/public-url"
+WWW_DIR="$TPS_HOME/www"
+mkdir -p "$TPS_HOME/run" "$TPS_HOME/logs" "$WWW_DIR"
+
+log(){ printf '[%s] %s\n' "$(date '+%F %T')" "$*" | tee -a "$LOG_FILE"; }
+running(){ [[ -f "$1" ]] && kill -0 "$(cat "$1")" 2>/dev/null; }
+stop_pid(){ local f="$1"; if running "$f"; then kill "$(cat "$f")" 2>/dev/null || true; fi; rm -f "$f"; }
+
+install_cloudflared(){
+  if command -v cloudflared >/dev/null 2>&1; then return; fi
+  local arch url tmp
+  arch="$(uname -m)"
+  case "$arch" in
+    aarch64|arm64) url="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64";;
+    armv7l|armv6l) url="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm";;
+    x86_64|amd64) url="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64";;
+    i686|x86) url="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-386";;
+    *) echo "Arsitektur tidak didukung: $arch" >&2; exit 1;;
+  esac
+  tmp="$TPS_HOME/run/cloudflared"
+  log "Mengunduh cloudflared untuk $arch ..."
+  curl -fL --retry 3 "$url" -o "$tmp"
+  chmod 755 "$tmp"
+  CLOUDFLARED="$tmp"
+}
+
+start_server(){
+  if running "$PID_FILE"; then log "Server sudah berjalan (PID $(cat "$PID_FILE"))"; return; fi
+  : > "$LOG_FILE"
+  if [[ -n "${TPS_APP_COMMAND:-}" ]]; then
+    bash -lc "$TPS_APP_COMMAND" >>"$LOG_FILE" 2>&1 &
+  else
+    python -m http.server "$PORT" --bind "${TPS_BIND:-127.0.0.1}" --directory "$WWW_DIR" >>"$LOG_FILE" 2>&1 &
+  fi
+  echo $! > "$PID_FILE"
+  sleep 1
+  if ! running "$PID_FILE"; then log "Server gagal dimulai; lihat $LOG_FILE"; rm -f "$PID_FILE"; exit 1; fi
+  log "Server berjalan pada port $PORT (PID $(cat "$PID_FILE"))"
+}
+
+cmd_start(){
+  local mode="${1:---public}"
+  case "$mode" in
+    --public)
+      PORT="${TPS_PORT:-8080}"
+      start_server
+      install_cloudflared
+      stop_pid "$TUNNEL_PID_FILE"
+      rm -f "$URL_FILE"
+      "$CLOUDFLARED" tunnel --no-autoupdate --url "http://127.0.0.1:$PORT" 2>&1 | while IFS= read -r line; do
+        printf '%s\n' "$line" >> "$LOG_FILE"
+        if [[ "$line" =~ https://[-a-zA-Z0-9]+\.trycloudflare\.com ]]; then
+          printf '%s\n' "${BASH_REMATCH[0]}" | tee "$URL_FILE"
+        fi
+      done &
+      echo $! > "$TUNNEL_PID_FILE"
+      log "Quick Tunnel dimulai. Tunggu URL trycloudflare.com muncul."
+      ;;
+    --lan)
+      PORT="${TPS_PORT:-8080}"
+      TPS_BIND="0.0.0.0" start_server
+      local ip
+      ip="$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src"){print $(i+1); exit}}')"
+      log "Akses LAN: http://${ip:-IP-TERMUX}:$PORT"
+      ;;
+    *) echo "Gunakan: tps start --public|--lan" >&2; exit 2;;
+  esac
+}
+
+case "${1:-help}" in
+  start) cmd_start "${2:---public}";;
+  stop) stop_pid "$TUNNEL_PID_FILE"; stop_pid "$PID_FILE"; rm -f "$URL_FILE"; log "Server dihentikan.";;
+  status)
+    running "$PID_FILE" && echo "server: aktif (PID $(cat "$PID_FILE"))" || echo "server: mati"
+    running "$TUNNEL_PID_FILE" && echo "tunnel: aktif (PID $(cat "$TUNNEL_PID_FILE"))" || echo "tunnel: mati"
+    [[ -f "$URL_FILE" ]] && echo "url: $(cat "$URL_FILE")"
+    ;;
+  logs) tail -n 80 "$LOG_FILE" 2>/dev/null || echo "Belum ada log.";;
+  update) git -C "$TPS_HOME" pull --ff-only && cp "$TPS_HOME/bin/tps" "$PREFIX/bin/tps" && chmod 755 "$PREFIX/bin/tps";;
+  uninstall) stop_pid "$TUNNEL_PID_FILE"; stop_pid "$PID_FILE"; rm -f "$PREFIX/bin/tps"; echo "CLI dihapus. Data tetap ada di $TPS_HOME.";;
+  help|*) echo "Penggunaan: tps start --public|--lan | stop | status | logs | update | uninstall";;
+esac
