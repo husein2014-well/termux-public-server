@@ -109,6 +109,20 @@ cmd_admin(){
   fi
 }
 
+stop_public(){
+  if tmux_running "$SESSION"; then tmux kill-session -t "$SESSION" 2>/dev/null || true; fi
+  stop_pid "$TUNNEL_PID_FILE"; stop_pid "$PID_FILE"
+  if command -v termux-wake-unlock >/dev/null 2>&1; then termux-wake-unlock || true; fi
+  rm -f "$URL_FILE"
+  log "Server publik dihentikan."
+}
+
+stop_admin(){
+  if tmux_running "$ADMIN_SESSION"; then tmux kill-session -t "$ADMIN_SESSION" 2>/dev/null || true; fi
+  stop_pid "$ADMIN_PID_FILE"
+  log "Admin dihentikan."
+}
+
 case "${1:-help}" in
   start) cmd_start "${2:---public}" "${3:-}";;
   admin) cmd_admin "${2:-}";;
@@ -118,13 +132,17 @@ case "${1:-help}" in
       show) [[ -f "$TPS_HOME/run/access.key" ]] || python "$TPS_HOME/app.py" --generate-key >/dev/null; cat "$TPS_HOME/run/access.key";;
       *) echo "Gunakan: tps key show|generate" >&2; exit 2;;
     esac;;
+  public-stop) stop_public;;
+  admin-stop) stop_admin;;
+  public-status)
+    tmux_running "$SESSION" && echo "public daemon: aktif" || echo "public daemon: mati"
+    running "$PID_FILE" && echo "public server: aktif (PID $(cat "$PID_FILE"))" || echo "public server: mati"
+    running "$TUNNEL_PID_FILE" && echo "public tunnel: aktif (PID $(cat "$TUNNEL_PID_FILE"))" || echo "public tunnel: mati"
+    [[ -f "$URL_FILE" ]] && echo "url: $(cat "$URL_FILE")";;
+  admin-status)
+    tmux_running "$ADMIN_SESSION" && echo "admin: aktif (http://127.0.0.1:8090)" || echo "admin: mati";;
   stop)
-    if tmux_running "$SESSION"; then tmux kill-session -t "$SESSION" 2>/dev/null || true; fi
-    if tmux_running "$ADMIN_SESSION"; then tmux kill-session -t "$ADMIN_SESSION" 2>/dev/null || true; fi
-    stop_pid "$TUNNEL_PID_FILE"; stop_pid "$PID_FILE"; stop_pid "$ADMIN_PID_FILE"
-    if command -v termux-wake-unlock >/dev/null 2>&1; then termux-wake-unlock || true; fi
-    rm -f "$URL_FILE"
-    log "Server dan admin dihentikan.";;
+    stop_public; stop_admin;;
   status)
     tmux_running "$SESSION" && echo "daemon: aktif (tmux: $SESSION)" || echo "daemon: mati"
     running "$PID_FILE" && echo "server: aktif (PID $(cat "$PID_FILE"))" || echo "server: mati"
@@ -133,7 +151,7 @@ case "${1:-help}" in
     [[ -f "$URL_FILE" ]] && echo "url: $(cat "$URL_FILE")"
     echo "key: gunakan 'tps key show' atau buka 'tps admin'";;
   logs) tail -n 80 "$LOG_FILE" 2>/dev/null || echo "Belum ada log.";;
-  update) git -C "$TPS_HOME" pull --ff-only && cp "$TPS_HOME/bin/tps" "$PREFIX/bin/tps" && chmod 755 "$PREFIX/bin/tps";;
-  uninstall) "$0" stop >/dev/null 2>&1 || true; rm -f "$PREFIX/bin/tps"; echo "CLI dihapus. Data tetap ada di $TPS_HOME.";;
+  update) git -C "$TPS_HOME" pull --ff-only && cp "$TPS_HOME/bin/tps" "$PREFIX/bin/tps" && cp "$TPS_HOME/bin/tps-public" "$PREFIX/bin/tps-public" && cp "$TPS_HOME/bin/tps-admin" "$PREFIX/bin/tps-admin" && chmod 755 "$PREFIX/bin/tps" "$PREFIX/bin/tps-public" "$PREFIX/bin/tps-admin";;
+  uninstall) "$0" stop >/dev/null 2>&1 || true; rm -f "$PREFIX/bin/tps" "$PREFIX/bin/tps-public" "$PREFIX/bin/tps-admin"; echo "CLI dihapus. Data tetap ada di $TPS_HOME.";;
   help|*) echo "Penggunaan: tps start --public|--lan [--foreground] | admin | key show|generate | stop | status | logs | update | uninstall";;
 esac

@@ -25,6 +25,8 @@ if [[ ! -f "$INSTALL_DIR/www/index.html" && -f "$INSTALL_DIR/server/www/index.ht
   cp "$INSTALL_DIR/server/www/index.html" "$INSTALL_DIR/www/index.html"
 fi
 cp "$INSTALL_DIR/bin/tps" "$BIN_DIR/tps"
-chmod 755 "$BIN_DIR/tps"
+cp "$INSTALL_DIR/bin/tps-public" "$BIN_DIR/tps-public"
+cp "$INSTALL_DIR/bin/tps-admin" "$BIN_DIR/tps-admin"
+chmod 755 "$BIN_DIR/tps" "$BIN_DIR/tps-public" "$BIN_DIR/tps-admin"
 printf 'export TPS_HOME=%q\n' "$INSTALL_DIR" > "$INSTALL_DIR/env"
 printf '\nInstalasi selesai. Jalankan:\n  source %q\n  tps start --public\n' "$INSTALL_DIR/env"

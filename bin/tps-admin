@@ -1,0 +1,22 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -Eeuo pipefail
+
+usage(){
+  cat <<'EOF'
+Tps Admin - halaman admin lokal dan access key
+
+  tps-admin start         Jalankan halaman admin di http://127.0.0.1:8090
+  tps-admin stop          Hentikan halaman admin
+  tps-admin status        Lihat status halaman admin
+  tps-admin key show      Tampilkan access key aktif
+  tps-admin key generate  Buat key baru dan batalkan key lama
+EOF
+}
+
+case "${1:-help}" in
+  start) exec "${PREFIX:-}/bin/tps" admin;;
+  stop) exec "${PREFIX:-}/bin/tps" admin-stop;;
+  status) exec "${PREFIX:-}/bin/tps" admin-status;;
+  key) exec "${PREFIX:-}/bin/tps" key "${2:-show}";;
+  help|*) usage;;
+esac

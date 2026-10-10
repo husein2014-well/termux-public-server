@@ -1,0 +1,22 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -Eeuo pipefail
+
+usage(){
+  cat <<'EOF'
+Tps Public - server dan tunnel publik
+
+  tps-public start --public [--foreground]  Jalankan website + tunnel publik
+  tps-public start --lan [--foreground]     Jalankan website di jaringan LAN
+  tps-public stop                           Hentikan server publik
+  tps-public status                         Lihat status dan URL publik
+  tps-public logs                           Lihat log server
+  tps-public update                         Perbarui tools dari GitHub
+EOF
+}
+
+case "${1:-help}" in
+  start|logs|update) exec "${PREFIX:-}/bin/tps" "$@";;
+  stop) exec "${PREFIX:-}/bin/tps" public-stop;;
+  status) exec "${PREFIX:-}/bin/tps" public-status;;
+  help|*) usage;;
+esac

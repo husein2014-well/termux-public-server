@@ -1,68 +1,61 @@
 # Operasi
 
-## Menjaga proses tetap hidup setelah Termux ditutup
+## Menjaga server tetap hidup
 
-`tps start --public` dan `tps start --lan` otomatis membuat sesi **tmux** bernama `tps-server`, jadi terminal dapat ditutup tanpa menghentikan server.
+` tps-public start --public` dan `tps-public start --lan` membuat sesi tmux `tps-server`. `tps-admin start` membuat sesi terpisah `tps-admin`.
 
 ```bash
-tps start --public
-tps status
-tps logs
+tps-public start --public
+tps-public status
+tps-public logs
 ```
+
+Untuk menghentikan hanya server publik:
+
+```bash
+tps-public stop
+```
+
+Untuk menghentikan hanya admin:
+
+```bash
+tps-admin stop
+```
+
+Agar Android tidak membunuh proses, buka pengaturan Termux → Battery/Baterai → Unrestricted/Tidak dibatasi. Jangan gunakan Force stop. Jika tersedia, jalankan `termux-wake-lock` untuk operasi lama.
 
 ## Access key dari website admin
 
-Website publik selalu meminta access key. Untuk melihat key aktif dari terminal:
+Jalankan tools admin:
 
 ```bash
-tps key show
+tps-admin start
 ```
 
-Untuk membuat key dari website:
+Buka `http://127.0.0.1:8090` pada browser Android. Klik **Buat key baru**, lalu gunakan key yang ditampilkan pada halaman login website publik. Admin hanya listen di localhost.
+
+Alternatif dari terminal:
 
 ```bash
-tps admin
+tps-admin key show
+tps-admin key generate
 ```
 
-Buka `http://127.0.0.1:8090` pada browser Android. Klik **Buat key baru**, lalu gunakan key yang ditampilkan pada halaman login website publik. Admin hanya listen di localhost dan tidak diteruskan oleh Cloudflare Tunnel.
-
-Alternatif rotasi dari terminal:
-
-```bash
-tps key generate
-```
-
-Rotasi key akan membatalkan key lama dan sesi login lama.
-
-Untuk menghentikan server dan tunnel:
-
-```bash
-tps stop
-```
-
-Agar Android tidak membunuh proses:
-
-1. Buka pengaturan aplikasi **Termux**.
-2. Pilih **Battery/Baterai**.
-3. Pilih **Unrestricted/Tidak dibatasi** atau matikan optimasi baterai.
-4. Jangan gunakan **Force stop**. Gunakan `tps stop`.
-5. Jika tersedia, jalankan `termux-wake-lock` ketika membutuhkan server aktif lama.
-
-Catatan: Android tetap dapat menghentikan proses karena mode hemat daya, RAM penuh, reboot, atau force-stop. Untuk otomatis hidup setelah reboot, gunakan aplikasi **Termux:Boot** dan buat skrip startup terpisah; fitur itu tidak dipasang otomatis oleh kit ini.
+Rotasi key membatalkan key lama dan sesi login lama.
 
 ## Jika URL tidak muncul
 
-1. Jalankan `tps logs`.
+1. Jalankan `tps-public logs`.
 2. Pastikan `curl` dan `python` bisa dipanggil.
 3. Pastikan koneksi internet aktif.
-4. Jalankan ulang `tps stop` lalu `tps start --public`.
+4. Jalankan `tps-public stop` lalu `tps-public start --public`.
 
 ## Jika port 8080 dipakai
 
 ```bash
 export TPS_PORT=9090
 export TPS_APP_COMMAND='python -m http.server 9090 --bind 0.0.0.0 --directory "$HOME/.termux-public-server/www"'
-tps start --public
+tps-public start --public
 ```
 
 Quick Tunnel harus mengarah ke port yang sama dengan aplikasi.
