@@ -16,36 +16,7 @@ Untuk menghentikan hanya server publik:
 tps-public stop
 ```
 
-Untuk menghentikan hanya admin:
-
-```bash
-tps-admin stop
-```
-
 Agar Android tidak membunuh proses, buka pengaturan Termux → Battery/Baterai → Unrestricted/Tidak dibatasi. Jangan gunakan Force stop. Jika tersedia, jalankan `termux-wake-lock` untuk operasi lama.
-
-## Access key dari website admin
-
-Jalankan tools admin:
-
-```bash
-tps-admin start
-```
-
-Buka `http://127.0.0.1:8090` pada browser Android. Pilih masa aktif key (1 jam, 24 jam, 7 hari, 30 hari, atau tanpa kedaluwarsa), lalu klik **Simpan masa aktif** atau **Buat key baru**. Admin hanya listen di localhost.
-
-Alternatif dari terminal:
-
-```bash
-tps-admin key show
-tps-admin key info
-tps-admin key generate
-tps-admin key generate 24h
-tps-admin key set-expiry 7d
-tps-admin key set-expiry never
-```
-
-Durasi yang didukung adalah `1h`, `24h`, `7d`, `30d`, dan `never` (CLI juga menerima durasi menit/jam/hari sampai 365 hari). Rotasi key membatalkan key lama dan sesi login lama. `set-expiry` hanya mengubah masa aktif key yang sedang dipakai.
 
 ## Jika URL tidak muncul
 

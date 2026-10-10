@@ -57,37 +57,6 @@ Untuk menjalankan menempel di terminal:
 tps-public start --public --foreground
 ```
 
-## Tools admin
-
-Jalankan halaman admin lokal:
-
-```bash
-tps-admin start
-```
-
-Buka alamat ini pada browser Android:
-
-```text
-http://127.0.0.1:8090
-```
-
-Halaman admin hanya listen di localhost dan tidak diteruskan ke tunnel publik. Gunakan halaman tersebut untuk membuat/merotasi access key dan memilih masa aktif **1 jam, 24 jam, 7 hari, 30 hari, atau tanpa kedaluwarsa**.
-
-Perintah admin lainnya:
-
-```bash
-tps-admin status
-tps-admin key show
-tps-admin key info
-tps-admin key generate
-tps-admin key generate 24h
-tps-admin key set-expiry 7d
-tps-admin key set-expiry never
-tps-admin stop
-```
-
-Setiap kali key dirotasi, key lama dan sesi login lama tidak berlaku lagi. `set-expiry` mengubah masa aktif key saat ini tanpa mengganti key.
-
 ## Perintah lengkap
 
 ```text
@@ -98,13 +67,6 @@ tps-public status               Status dan URL publik
 tps-public logs                 Log publik
 tps-public update               Perbarui tools dari GitHub
 
-tps-admin start                 Jalankan admin lokal
-tps-admin stop                  Hentikan hanya admin
-tps-admin status                Status admin
-tps-admin key show              Tampilkan key aktif
-tps-admin key info              Tampilkan masa aktif key
-tps-admin key generate 24h      Buat key aktif 24 jam
-tps-admin key set-expiry 7d     Atur key saat ini aktif 7 hari
 ```
 
 Perintah `tps` lama tetap tersedia sebagai kompatibilitas, tetapi penggunaan yang disarankan adalah `tps-public` dan `tps-admin`.
@@ -130,7 +92,7 @@ Pengunjung tetap harus memasukkan access key sebelum melihat website.
 - Jangan mengekspos panel admin, database, SSH, file pribadi, token, atau cookie.
 - Quick Tunnel cocok untuk demo dan webhook pengembangan, bukan SLA produksi.
 - Atur **Settings Android → Apps → Termux → Battery → Unrestricted** agar Android tidak mematikan proses.
-- Gunakan `tps-public stop` dan `tps-admin stop`, bukan Force stop Termux.
+- Gunakan perintah stop yang tersedia, bukan Force stop Termux.
 - Penggunaan data, panas, dan baterai menjadi tanggung jawab pengguna.
 
 ## Lisensi

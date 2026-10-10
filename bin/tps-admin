@@ -3,15 +3,13 @@ set -Eeuo pipefail
 
 usage(){
   cat <<'EOF'
-Tps Admin - halaman admin lokal dan access key
-
-  tps-admin start         Jalankan halaman admin di http://127.0.0.1:8090
-  tps-admin stop          Hentikan halaman admin
-  tps-admin status        Lihat status halaman admin
-  tps-admin key show      Tampilkan access key aktif
-  tps-admin key info      Tampilkan key dan masa aktif
-  tps-admin key generate  Buat key baru dan batalkan key lama
-  tps-admin key set-expiry 24h  Atur masa aktif key saat ini
+  tps-admin start
+  tps-admin stop
+  tps-admin status
+  tps-admin key show
+  tps-admin key info
+  tps-admin key generate [durasi]
+  tps-admin key set-expiry [durasi]
 EOF
 }
 
